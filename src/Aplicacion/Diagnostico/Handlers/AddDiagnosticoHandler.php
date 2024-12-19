@@ -7,19 +7,25 @@ use Mod2Nur\Dominio\Diagnostico\DiagnosticoRepository;
 use Mod2Nur\Dominio\Paciente\PacienteRepository;
 use Illuminate\Database\DatabaseManager;
 use Mod2Nur\Aplicacion\Diagnostico\Commands\AddDiagnosticoCommand;
+use Mod2Nur\Dominio\Diagnostico\EstadoDiagnostico;
 use Mod2Nur\Dominio\Diagnostico\TipoDiagnostico;
-use Mod2Nur\Infraestructura\Modelos\TipoDiagnostico as TipoDiagnosticoModel;
+use Mod2Nur\Dominio\Diagnostico\TipoDiagnosticoRepository;
 
 class AddDiagnosticoHandler
 {
-    public function __construct(
-        private DiagnosticoRepository $diagnosticoRepository,
-        private PacienteRepository $pacienteRepository,
-        private DatabaseManager $db
-    ) {
+    private DiagnosticoRepository $diagnosticoRepository;
+    private TipoDiagnosticoRepository $tipoDiagRepository;
+    private PacienteRepository $pacienteRepository;
+    private DatabaseManager $db;
+
+    public function __construct(DiagnosticoRepository $diagnosticoRepository, TipoDiagnosticoRepository $tipoDiagRepository, PacienteRepository $pacienteRepository, DatabaseManager $DBManager) {
+        $this->diagnosticoRepository = $diagnosticoRepository;
+        $this->tipoDiagRepository = $tipoDiagRepository;
+        $this->pacienteRepository = $pacienteRepository;
+        $this->db = $DBManager; 
     }
 
-    public function __invoke(AddDiagnosticoCommand $command): bool
+    public function __invoke(AddDiagnosticoCommand $command): ?Diagnostico
     {
         $paciente = $this->pacienteRepository->findById($command->pacienteId);
 
@@ -27,23 +33,42 @@ class AddDiagnosticoHandler
             throw new \InvalidArgumentException('Paciente no encontrado.');
         }
 
-        $this->db->transaction(function () use ($paciente, $command) {
+        $tipoDiagnostico = $this->tipoDiagRepository->findById($command->tipoDiagnosticoId);
+        
+        if (!$tipoDiagnostico) {
+            throw new \InvalidArgumentException('Tipo de Diagnóstico no encontrado.');
+        }
 
-            /*$tipoDiagnostico = TipoDiagnosticoModel::findById($command->tipoDiagnosticoId) ?? new TipoDiagnosticoModel();
+        $estadoDiagnostico =  EstadoDiagnostico::from($command->estadoDiagnostico);
+    
+        if (!$estadoDiagnostico) {
+            throw new \InvalidArgumentException('Estado de Diagnóstico incorrecto.');
+        }
+
+        try {
+            $diagnostico = null;
+            $this->db->transaction(function () use ($command, $paciente,$tipoDiagnostico, $estadoDiagnostico, &$diagnostico) {
             
-            $diagnostico = new Diagnostico(
-                peso: $command->peso,
-                altura: $command->altura,
-                composicion: $command->composicion,
-                tipoDiagnosticoId: $command->tipoDiagnosticoId
-            );           
-
-            $paciente->addDiagnostico($diagnostico);
-            $this->diagnosticoRepository->save($diagnostico);*/
-
-            
-        });
-
-        return true;
+                $diagnostico = new Diagnostico(
+                    id: '',
+                    paciente: $paciente,
+                    peso: $command->peso,
+                    altura: $command->altura,
+                    composicion: $command->composicion,
+                    estadoDiagnostico: $estadoDiagnostico,
+                    tipoDiagnostico: $tipoDiagnostico
+                );
+                // Intentar guardar en el repositorio
+                if (!$this->diagnosticoRepository->save($diagnostico)) {
+                    throw new \RuntimeException('Error al guardar el diagnóstico en el repositorio.');
+                }
+            });        
+            // Si todo salió bien, la transacción hará commit automáticamente.
+            return $diagnostico;
+        } catch (\Exception $e) {
+            // Si ocurre cualquier excepción, se realizará un rollback automáticamente
+            throw new \RuntimeException('Error durante la transacción: ' . $e->getMessage(), 0, $e);
+        }
     }
 }
+

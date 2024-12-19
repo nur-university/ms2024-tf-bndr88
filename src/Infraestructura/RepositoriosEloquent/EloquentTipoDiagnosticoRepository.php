@@ -8,24 +8,34 @@ use Mod2Nur\Dominio\Diagnostico\TipoDiagnosticoRepository;
 use Mod2Nur\Infraestructura\Modelos\TipoDiagnostico as TipoDiagModel;
 
 class EloquentTipoDiagnosticoRepository implements TipoDiagnosticoRepository {
-    public function save(string $id, string $descripcion): bool
+    
+    public function save(TipoDiagnostico $tipoDiagnostico): bool
     {
-        $TipoDiagModel = TipoDiagModel::find($id) ?? new TipoDiagModel();
-        
-        /*$TipoDiagModel->id = $diagnostico->getId();
-        $TipoDiagModel->peso = $diagnostico->getPeso();
-        $TipoDiagModel->altura = $diagnostico->getAltura();
-        $TipoDiagModel->composicion = $diagnostico->getComposicion();
-        $TipoDiagModel->tipo_diagnostico_id = $diagnostico->getTipoDiagnostico()->getId();*/
+        $TipoDiagModel = TipoDiagModel::find($tipoDiagnostico->getId()) ?? new TipoDiagModel();
+
+        $TipoDiagModel->id = $tipoDiagnostico->getId();
+        $TipoDiagModel->descripcion = $tipoDiagnostico->getDescripcion();
 
         return $TipoDiagModel->save();
     }
 
+    public function findById(string $id): ?TipoDiagnostico { 
+        $tipoDiagModel = TipoDiagModel::find($id);
+        if (!$tipoDiagModel) {
+            return null;
+        }
+
+        return new TipoDiagnostico(
+            $tipoDiagModel->id,
+            $tipoDiagModel->descripcion
+        );
+    }
+
     public function remove(string $id): bool
     {
-        $pacienteModel = TipoDiagModel::find($id);
-        if ($pacienteModel) {
-            return $pacienteModel->delete();
+        $tipoDiagModel = TipoDiagModel::find($id);
+        if ($tipoDiagModel) {
+            return $tipoDiagModel->delete();
         }
     }
 }

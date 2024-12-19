@@ -17,7 +17,9 @@ $capsule->addConnection([
     'charset'   => 'utf8',
     'collation' => 'utf8_unicode_ci',
     'prefix'    => '',
-]);
+], 'default');
 
 $capsule->setAsGlobal();
 $capsule->bootEloquent();
+
+return $capsule;

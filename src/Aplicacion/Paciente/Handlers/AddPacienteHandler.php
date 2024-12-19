@@ -4,13 +4,16 @@ namespace Mod2Nur\Aplicacion\Paciente\Handlers;
 
 use Mod2Nur\Aplicacion\Paciente\Commands\AddPacienteCommand;
 use Mod2Nur\Dominio\Paciente\Paciente;
-use Mod2Nur\Infraestructura\RepositoriosEloquent\EloquentPacienteRepository;
+use Mod2Nur\Dominio\Paciente\PacienteRepository;
+
+//use Mod2Nur\Infraestructura\RepositoriosEloquent\EloquentPacienteRepository;
 
 class AddPacienteHandler
 {
-    private EloquentPacienteRepository $repository;
+    //private EloquentPacienteRepository $repository;
+    private PacienteRepository $repository;
 
-    public function __construct(EloquentPacienteRepository $repository)
+    public function __construct(PacienteRepository $repository)
     {
         $this->repository = $repository;
     }

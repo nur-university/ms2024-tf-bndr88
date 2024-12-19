@@ -6,8 +6,10 @@ use DomainException;
 use Illuminate\Support\Str;
 use Mod2Nur\Dominio\Abstracciones\AggregateRoot;
 use InvalidArgumentException;
+use Mod2Nur\Dominio\Paciente\Paciente;
 
 class Diagnostico extends AggregateRoot {
+    private Paciente $paciente;
     private float $peso;
     private float $altura;
     private string $composicion;
@@ -15,36 +17,22 @@ class Diagnostico extends AggregateRoot {
     private TipoDiagnostico $tipoDiagnostico;
     private array $analisisSolicitados = []; 
 
-    /*public function __construct(
-        string $id,
-        float $peso,
-        float $altura,
-        string $composicion,
-        EstadoDiagnostico $estadoDiagnostico,
-        TipoDiagnostico $tipoDiagnostico
-    ) {
-        parent::__construct($id);
-        $this->peso = $peso;
-        $this->altura = $altura;
-        $this->composicion = $composicion;
-        $this->estadoDiagnostico = $estadoDiagnostico;
-        $this->tipoDiagnostico = $tipoDiagnostico;
-    }*/
-    public function __construct(string $id,float $peso,float $altura,string $composicion,EstadoDiagnostico $estadoDiagnostico,TipoDiagnostico $tipoDiagnostico)
+    public function __construct(string $id,Paciente $paciente, float $peso,float $altura,string $composicion,EstadoDiagnostico $estadoDiagnostico,TipoDiagnostico $tipoDiagnostico)
     {
         if ($id ==='') {
-            $this->constructorUno($peso,$altura,$composicion,$estadoDiagnostico,$tipoDiagnostico);
+            $this->constructorUno($paciente,$peso,$altura,$composicion,$estadoDiagnostico,$tipoDiagnostico);
         } elseif ($id !== null) {
-            $this->constructorDos($id,$peso,$altura,$composicion,$estadoDiagnostico,$tipoDiagnostico);
+            $this->constructorDos($id,$paciente,$peso,$altura,$composicion,$estadoDiagnostico,$tipoDiagnostico);
         } else {
             throw new InvalidArgumentException("Parámetros no válidos");
         }
     }
 
-    private function constructorUno(float $peso,float $altura,string $composicion,EstadoDiagnostico $estadoDiagnostico,TipoDiagnostico $tipoDiagnostico)
+    private function constructorUno(Paciente $paciente, float $peso,float $altura,string $composicion,EstadoDiagnostico $estadoDiagnostico,TipoDiagnostico $tipoDiagnostico)
     {
         $id = (string) Str::uuid();
         parent::__construct($id);
+        $this->paciente = $paciente;
         $this->peso = $peso;
         $this->altura = $altura;
         $this->composicion = $composicion;
@@ -52,9 +40,10 @@ class Diagnostico extends AggregateRoot {
         $this->tipoDiagnostico = $tipoDiagnostico;
     }
 
-    private function constructorDos(string $id,float $peso,float $altura,string $composicion,EstadoDiagnostico $estadoDiagnostico,TipoDiagnostico $tipoDiagnostico)
+    private function constructorDos(string $id,Paciente $paciente,float $peso,float $altura,string $composicion,EstadoDiagnostico $estadoDiagnostico,TipoDiagnostico $tipoDiagnostico)
     {
         parent::__construct($id);
+        $this->paciente = $paciente;
         $this->peso = $peso;
         $this->altura = $altura;
         $this->composicion = $composicion;
@@ -92,6 +81,10 @@ class Diagnostico extends AggregateRoot {
     }
 
     // Getters
+    public function getPaciente(): Paciente {
+        return $this->paciente;
+    }
+
     public function getPeso(): float {
         return $this->peso;
     }
@@ -117,6 +110,10 @@ class Diagnostico extends AggregateRoot {
     }
     
     // Setters
+    public function setPaciente(Paciente $paciente): void {
+        $this->paciente = $paciente;
+    }
+    
     public function setPeso(float $peso): void {
         $this->peso = $peso;
     }

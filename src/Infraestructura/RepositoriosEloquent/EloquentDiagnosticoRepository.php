@@ -2,6 +2,7 @@
 
 namespace Mod2Nur\Infraestructura\RepositoriosEloquent;
 
+use Exception;
 use Mod2Nur\Dominio\Diagnostico\Diagnostico;
 use Mod2Nur\Dominio\Diagnostico\DiagnosticoRepository;
 use Mod2Nur\Dominio\Diagnostico\TipoDiagnostico;
@@ -10,17 +11,23 @@ use Mod2Nur\Infraestructura\Modelos\TipoDiagnostico as TipoDiagnosticoModel;
 
 class EloquentDiagnosticoRepository implements DiagnosticoRepository
 {
-    public function save(Diagnostico $diagnostico): void
+    public function save(Diagnostico $diagnostico): ?Diagnostico
     {
         $DiagnosticoModel = DiagnosticoModel::find($diagnostico->getId()) ?? new DiagnosticoModel();
         
         $DiagnosticoModel->id = $diagnostico->getId();
+        $DiagnosticoModel->pacienteId = $diagnostico->getPaciente()->getId();
         $DiagnosticoModel->peso = $diagnostico->getPeso();
         $DiagnosticoModel->altura = $diagnostico->getAltura();
         $DiagnosticoModel->composicion = $diagnostico->getComposicion();
-        $DiagnosticoModel->tipo_diagnostico_id = $diagnostico->getTipoDiagnostico()->getId();
-
-        $DiagnosticoModel->save();
+        $DiagnosticoModel->tipoDiagnostico_id = $diagnostico->getTipoDiagnostico()->getId();
+        
+        if ($DiagnosticoModel->save()) {
+            $diagnostico->setId($DiagnosticoModel->id);
+            return $diagnostico;
+        }else {
+            throw new Exception("Error al guardar Diagnostico");
+        }
     }
 
     public function findById(string $id): ?Diagnostico
@@ -35,6 +42,7 @@ class EloquentDiagnosticoRepository implements DiagnosticoRepository
 
         return new Diagnostico(
             id: $DiagnosticoModel->id,
+            paciente:$DiagnosticoModel->paciente,
             peso: $DiagnosticoModel->peso,
             altura: $DiagnosticoModel->altura,
             composicion: $DiagnosticoModel->composicion,

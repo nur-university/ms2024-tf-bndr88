@@ -22,6 +22,7 @@ class Mediator implements IMediator
             throw new HandlerNotFoundException('No handler found for message: ' . get_class($message));
         }
 
-        return $handler->handle($message);
+        //return $handler->handle($message);
+        return $handler($message);
     }
 }

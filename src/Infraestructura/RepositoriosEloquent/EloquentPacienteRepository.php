@@ -24,7 +24,6 @@ class EloquentPacienteRepository implements PacienteRepository
         $pacienteModel->id = $aggregateRoot->getId();
         $pacienteModel->nombre = $aggregateRoot->getNombre();
         $pacienteModel->fechaNacimiento = $aggregateRoot->getFechaNacimiento()->format('Y-m-d');
-        //$pacienteModel->save();
         if ($pacienteModel->save()) {
             return new Paciente($pacienteModel->id,$pacienteModel->nombre, new DateTime ($pacienteModel->fechaNacimiento));
         }
